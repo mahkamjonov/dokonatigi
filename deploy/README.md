@@ -54,11 +54,11 @@ sudo -u atigi -H bash /srv/atigi/deploy/deploy.sh
 
 ## Domen olganda
 
-1. Domen sozlamalarida **A record** → server IP.
+1. Domen sozlamalarida ikkita **A record**: `@` va `www` → server IP.
 2. Bir necha daqiqadan keyin (`ping DOMEN` server IP'sini ko'rsatsa):
 
 ```bash
-bash /srv/atigi/deploy/set-domain.sh atigi.uz
+bash /srv/atigi/deploy/set-domain.sh atigi.uz www.atigi.uz
 ```
 
 Nginx, HTTPS sertifikati va Telegram bot manzili yangi domenga o'tadi.
