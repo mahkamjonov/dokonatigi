@@ -6,6 +6,9 @@ DB_NAME=atigi
 BACKUP_DIR=/var/backups/atigi
 FILE="$BACKUP_DIR/$DB_NAME-$(date +%F).dump"
 
+umask 077
+cd "$BACKUP_DIR"
+
 # The app user connects through the local socket (peer authentication): no password needed.
 pg_dump --format=custom --file="$FILE" "$DB_NAME"
 pg_restore --list "$FILE" >/dev/null  # fails if the dump is unreadable
