@@ -72,6 +72,7 @@ Nginx, HTTPS sertifikati va Telegram bot manzili yangi domenga o'tadi.
 scp root@SERVER_IP:/var/backups/atigi/atigi-2026-10-28.dump .
 ```
 
+- Shu nusxa **egasining Telegram chatiga ham yuboriladi** (ovozsiz xabar, shifrlanmagan), shuning uchun server butunlay yo'qolsa ham ma'lumotlar qoladi. Buning uchun ega bir marta botni ochib, ilovaga kirgan bo'lishi kerak.
 - Har bir yangilashdan (`deploy.sh`) oldin ham alohida nusxa olinadi: `pre-deploy-*.dump`.
 - Loglar: `/var/backups/atigi/backup.log`.
 - Tiklash (**joriy ma'lumotlar ustidan yoziladi!**):
