@@ -28,7 +28,7 @@ bash /srv/atigi/deploy/setup.sh
 
 5–10 daqiqa davom etadi. Oxirida **certbot** (bepul HTTPS sertifikati) e-mail so'raydi va Let's Encrypt shartlariga rozilik so'raydi. Tugagach, sayt manzili chiqadi.
 
-Skript nima qiladi: Node.js 24, PostgreSQL, Nginx, PM2 o'rnatadi; faqat 22/80/443 portlarini ochiq qoldiradi; bazani va maxfiy kalitlarni yaratib, `apps/api/.env` ga yozadi; saytni build qilib ishga tushiradi; server qayta yoqilganda ham avtomatik ishga tushadigan qiladi; har kuni bazaning zaxira nusxasini oladi.
+Skript nima qiladi: yetishmayotgan dasturlarni (Node.js, PostgreSQL, Nginx, PM2) o'rnatadi — serverda boshqa loyihalar bo'lsa, mavjud dasturlar yangilanmaydi va API birinchi bo'sh portni (3000 dan boshlab) oladi; faqat 22/80/443 portlarini ochiq qoldiradi; bazani va maxfiy kalitlarni yaratib, `apps/api/.env` ga yozadi; saytni build qilib ishga tushiradi; server qayta yoqilganda ham avtomatik ishga tushadigan qiladi; har kuni bazaning zaxira nusxasini oladi.
 
 ## 3. Do'kon egasini yaratish
 

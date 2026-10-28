@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
-# One-time setup of a fresh Ubuntu 22.04/24.04 VPS for Atigi: Node.js, PostgreSQL, Nginx, HTTPS, PM2, firewall, backups.
+# One-time setup of Atigi on an Ubuntu 22.04/24.04 VPS: Node.js, PostgreSQL, Nginx, HTTPS, PM2, firewall, backups.
 # Run as root from the cloned repo:   bash /srv/atigi/deploy/setup.sh [domain]
 # Without a domain the site gets a free <ip>.sslip.io address until a real domain is bought.
+# Safe on a server that already hosts other projects: installed packages, Node.js, PM2 and the
+# timezone are left as they are, and the API gets the first free port from 3000 up.
 set -euo pipefail
 
 APP_DIR="$(cd "$(dirname "$0")/.." && pwd)"
@@ -17,19 +19,19 @@ DOMAIN="${1:-${SERVER_IP//./-}.sslip.io}"
 
 export DEBIAN_FRONTEND=noninteractive
 
-echo "==> System packages"
-timedatectl set-timezone Asia/Tashkent
+echo "==> System packages (missing ones only)"
 apt-get update
-apt-get -y upgrade
-apt-get install -y curl git openssl nginx postgresql ufw certbot python3-certbot-nginx
-if ! command -v node >/dev/null || [ "$(node -p 'process.versions.node.split(".")[0]')" -lt 24 ]; then
+apt-get install -y --no-upgrade curl git openssl nginx postgresql ufw certbot python3-certbot-nginx
+if ! command -v node >/dev/null; then
   curl -fsSL https://deb.nodesource.com/setup_24.x | bash -
   apt-get install -y nodejs
+elif [ "$(node -p 'process.versions.node.split(".")[0]')" -lt 20 ]; then
+  echo "Node.js $(node -v) is too old: Atigi needs 20 or newer."; exit 1
 fi
-npm install -g pm2
+command -v pm2 >/dev/null || npm install -g pm2
 
 # Small VPS plans run out of memory while building the web app.
-if ! swapon --show | grep -q .; then
+if ! swapon --show | grep -q . && [ "$(awk '/MemTotal/ {print $2}' /proc/meminfo)" -lt 2000000 ]; then
   echo "==> Adding 2 GB swap"
   fallocate -l 2G /swapfile
   chmod 600 /swapfile
@@ -41,7 +43,7 @@ fi
 echo "==> Firewall (SSH, HTTP, HTTPS only)"
 ufw allow OpenSSH
 ufw allow 'Nginx Full'
-ufw --force enable
+ufw status | grep -q 'Status: active' || ufw --force enable
 
 echo "==> App user"
 id -u "$APP_USER" >/dev/null 2>&1 || useradd --system --create-home --shell /bin/bash "$APP_USER"
@@ -60,9 +62,12 @@ SQL
     sudo -u postgres createdb --owner="$DB_USER" --encoding=UTF8 --template=template0 "$DB_NAME"
   fi
 
+  PORT=3000
+  while ss -tlnH "sport = :$PORT" | grep -q .; do PORT=$((PORT + 1)); done
+
   cat > "$ENV_FILE" <<ENV
 NODE_ENV=production
-PORT=3000
+PORT=$PORT
 APP_URL=https://$DOMAIN
 DATABASE_URL=postgresql://$DB_USER:$DB_PASS@localhost:5432/$DB_NAME
 DIRECT_URL=postgresql://$DB_USER:$DB_PASS@localhost:5432/$DB_NAME

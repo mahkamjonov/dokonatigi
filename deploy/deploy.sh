@@ -18,8 +18,9 @@ npm run build --workspace=apps/api
 pm2 startOrReload deploy/ecosystem.config.cjs
 pm2 save
 
+PORT="$(grep -E '^PORT=' apps/api/.env | cut -d= -f2)"
 for _ in $(seq 1 15); do
-  if curl -fsS http://127.0.0.1:3000/api/v1/health/ping >/dev/null; then
+  if curl -fsS "http://127.0.0.1:${PORT:-3000}/api/v1/health/ping" >/dev/null; then
     echo "✅ API is up"
     exit 0
   fi
