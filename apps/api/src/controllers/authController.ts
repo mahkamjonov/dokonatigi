@@ -62,65 +62,53 @@ export function userPayload(user: UserWithStore) {
   };
 }
 
-// 1. Owner registration
-export async function registerOwnerHandler(req: Request, res: Response) {
-  try {
-    const { storeName, name, phone, email, login, password } = req.body || {};
-    const identifier = normalizeIdentifier(String(login || phone || email || ''));
-    const userName = String(name || '').trim();
-    const sName = String(storeName || '').trim();
-    const userPassword = String(password || '').trim();
+// 1. Owner account: the system has a single owner, created from the command line (npm run create-owner).
+export async function createOwnerAccount(input: { storeName: string; name: string; login: string; password: string }) {
+  const identifier = normalizeIdentifier(input.login);
+  const userName = input.name.trim();
+  const sName = input.storeName.trim();
+  const userPassword = input.password.trim();
 
-    if (!identifier || !userName || !sName || !userPassword) {
-      return fail(res, 400, 'MISSING_FIELDS', "Barcha maydonlarni (Do'kon nomi, Ism, Telefon yoki Login va Parol) to'liq kiriting.");
-    }
-
-    const identifierError = validateIdentifier(identifier);
-    if (identifierError) return fail(res, 400, 'INVALID_LOGIN', identifierError);
-
-    if (userPassword.length < MIN_PASSWORD_LENGTH) {
-      return fail(res, 400, 'PASSWORD_TOO_SHORT', `Parol kamida ${MIN_PASSWORD_LENGTH} ta belgidan iborat bo'lishi kerak.`);
-    }
-
-    const existing = await prisma.user.findUnique({ where: { telegramId: identifier } });
-    if (existing) {
-      return fail(res, 400, 'USER_ALREADY_EXISTS', "Ushbu telefon raqam yoki login allaqachon ro'yxatdan o'tgan. Tizimga kiring.");
-    }
-
-    const userId = crypto.randomUUID();
-    const storeId = crypto.randomUUID();
-    const passwordHash = await bcrypt.hash(userPassword, 10);
-
-    const [store, user] = await prisma.$transaction([
-      prisma.store.create({
-        data: { id: storeId, name: sName, phone: isPhoneLike(identifier) ? identifier : null, ownerId: userId },
-      }),
-      prisma.user.create({
-        data: {
-          id: userId,
-          storeId,
-          telegramId: identifier,
-          firstName: userName,
-          username: identifier,
-          passwordHash,
-          role: 'owner',
-        },
-      }),
-    ]);
-
-    return res.status(201).json({
-      success: true,
-      token: signToken(user),
-      store: { id: store.id, name: store.name },
-      user: userPayload({ ...user, store }),
-    });
-  } catch (error: any) {
-    if (isUniqueViolation(error)) {
-      return fail(res, 400, 'USER_ALREADY_EXISTS', "Ushbu telefon raqam yoki login allaqachon ro'yxatdan o'tgan. Tizimga kiring.");
-    }
-    console.error('Register error:', error);
-    return fail(res, 500, 'SERVER_ERROR', "Ro'yxatdan o'tishda xatolik yuz berdi. Keyinroq urinib ko'ring.");
+  if (!identifier || !userName || !sName || !userPassword) {
+    throw new Error("Barcha maydonlarni (Do'kon nomi, Ism, Telefon yoki Login va Parol) to'liq kiriting.");
   }
+
+  const identifierError = validateIdentifier(identifier);
+  if (identifierError) throw new Error(identifierError);
+
+  if (userPassword.length < MIN_PASSWORD_LENGTH) {
+    throw new Error(`Parol kamida ${MIN_PASSWORD_LENGTH} ta belgidan iborat bo'lishi kerak.`);
+  }
+
+  if ((await prisma.user.count({ where: { role: 'owner' } })) > 0) {
+    throw new Error("Do'kon egasi allaqachon mavjud: tizimda faqat bitta ega bo'ladi.");
+  }
+
+  const existing = await prisma.user.findUnique({ where: { telegramId: identifier } });
+  if (existing) throw new Error('Ushbu telefon raqam yoki login band.');
+
+  const userId = crypto.randomUUID();
+  const storeId = crypto.randomUUID();
+  const passwordHash = await bcrypt.hash(userPassword, 10);
+
+  const [store, user] = await prisma.$transaction([
+    prisma.store.create({
+      data: { id: storeId, name: sName, phone: isPhoneLike(identifier) ? identifier : null, ownerId: userId },
+    }),
+    prisma.user.create({
+      data: {
+        id: userId,
+        storeId,
+        telegramId: identifier,
+        firstName: userName,
+        username: identifier,
+        passwordHash,
+        role: 'owner',
+      },
+    }),
+  ]);
+
+  return { store, user };
 }
 
 // 2. Login (owners and cashiers)

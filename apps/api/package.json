@@ -7,6 +7,7 @@
     "dev": "npx tsx watch src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
+    "create-owner": "npx tsx src/scripts/createOwner.ts",
     "test": "npx tsx src/utils/debtAllocation.test.ts && npx tsx src/utils/telegramInitData.test.ts && npx tsx src/services/reminders.test.ts"
   },
   "dependencies": {

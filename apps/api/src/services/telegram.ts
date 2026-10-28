@@ -80,7 +80,7 @@ export async function setupBot() {
     ],
   });
   await callTelegram('setChatMenuButton', {
-    menu_button: { type: 'web_app', text: 'Birzum', web_app: { url: getAppUrl() } },
+    menu_button: { type: 'web_app', text: 'Atigi', web_app: { url: getAppUrl() } },
   });
   console.log(`🤖 Telegram bot ready (webhook: ${getAppUrl()}/api/v1/telegram/webhook)`);
 }

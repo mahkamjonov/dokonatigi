@@ -68,7 +68,7 @@ app.use('/api/', apiLimiter);
 
 // Health check ping (Public)
 app.get('/api/v1/health/ping', (req, res) => {
-  res.status(200).json({ status: 'UP', service: 'Birzum API', timestamp: new Date().toISOString() });
+  res.status(200).json({ status: 'UP', service: 'Atigi API', timestamp: new Date().toISOString() });
 });
 
 // Authentication (public login/register + protected profile and cashier routes)
@@ -103,7 +103,7 @@ app.get('/api/v1/analytics', authGuard, requireOwner, getAnalyticsHandler);
 
 if (process.env.NODE_ENV !== 'test') {
   app.listen(PORT, () => {
-    console.log(`🚀 Birzum API server running on port ${PORT}`);
+    console.log(`🚀 Atigi API server running on port ${PORT}`);
     setupBot().catch((err) => console.error('Telegram bot setup failed:', err));
     startReminderScheduler();
     backfillStoreOwners().catch((err) => console.error('Store ownership backfill failed:', err));

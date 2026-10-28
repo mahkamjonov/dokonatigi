@@ -2,7 +2,6 @@ import { Router } from 'express';
 import rateLimit from 'express-rate-limit';
 import { authGuard, requireOwner } from '../middleware/auth.js';
 import {
-  registerOwnerHandler,
   loginHandler,
   meHandler,
   updateCredentialsHandler,
@@ -29,8 +28,7 @@ const credentialsLimiter = rateLimit({
   },
 });
 
-// PUBLIC ROUTES (no JWT required)
-router.post('/register', credentialsLimiter, registerOwnerHandler);
+// PUBLIC ROUTES (no JWT required). There is no sign-up: the owner is created with `npm run create-owner`, cashiers by the owner.
 router.post('/login', credentialsLimiter, loginHandler);
 router.post('/telegram', credentialsLimiter, telegramLoginHandler);
 

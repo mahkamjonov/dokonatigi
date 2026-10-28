@@ -43,7 +43,7 @@ interface ApiOptions {
   body?: unknown;
   storeId?: string;
   headers?: Record<string, string>;
-  // false for login/register: no token is sent and a 401 does not log the user out.
+  // false for login: no token is sent and a 401 does not log the user out.
   auth?: boolean;
 }
 

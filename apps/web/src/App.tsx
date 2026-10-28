@@ -35,7 +35,7 @@ export const App: React.FC = () => {
       {/* Top Bar Main Navigation Header */}
       <Header />
 
-      {/* Login / register: shown whenever there is no active session and cannot be dismissed */}
+      {/* Login: shown whenever there is no active session and cannot be dismissed */}
       <AuthModal />
 
       <Toast />

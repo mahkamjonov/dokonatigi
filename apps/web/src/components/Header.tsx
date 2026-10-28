@@ -131,9 +131,9 @@ export const Header: React.FC = () => {
             {/* Brand Logo & Static Label */}
             <div className="flex items-center gap-1.5 flex-shrink-0">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-100 font-extrabold text-emerald-700 text-sm shadow-xs">
-                B
+                A
               </div>
-              <span className="font-headline font-black text-slate-900 text-sm tracking-tight">Birzum</span>
+              <span className="font-headline font-black text-slate-900 text-sm tracking-tight">Atigi</span>
             </div>
 
             <span className="hidden sm:inline text-slate-300 select-none">|</span>
@@ -357,7 +357,7 @@ export const Header: React.FC = () => {
                     </div>
 
                     <p className="text-[11px] text-on-surface-variant mt-1 leading-normal">
-                      Do'kuningiz ma'lumotlarini saqlash uchun kiring yoki ro'yxatdan o'ting.
+                      Do'kuningiz ma'lumotlarini ko'rish uchun tizimga kiring.
                     </p>
 
                     <div className="my-2 border-t border-outline-variant/40" />
@@ -368,7 +368,7 @@ export const Header: React.FC = () => {
                       className="w-full text-left text-xs font-bold text-emerald-600 hover:bg-emerald-50 p-2 rounded-xl transition-colors flex items-center gap-2"
                     >
                       <span className="material-symbols-outlined text-base">login</span>
-                      <span>Kirish / Ro'yxatdan o'tish</span>
+                      <span>Kirish</span>
                     </button>
                   </>
                 )}

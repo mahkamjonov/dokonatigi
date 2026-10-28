@@ -26,7 +26,7 @@ const safeEqual = (a: string, b: string) => {
 const money = (n: number) => Math.round(n).toLocaleString('ru-RU').replace(/ /g, ' ');
 
 const HELP_TEXT =
-  "🤖 <b>Birzum boti</b>\n\n/bugun — bugungi tushum holati\n/qarzlar — muddati yaqin qarzlar\n/yordam — shu yordam\n\nIlovani ochish uchun pastdagi tugmadan foydalaning. Bugungi tushum kiritilmasa va qarz muddati yaqinlashsa, soat 21:00 da eslatib turaman.";
+  "🤖 <b>Atigi boti</b>\n\n/bugun — bugungi tushum holati\n/qarzlar — muddati yaqin qarzlar\n/yordam — shu yordam\n\nIlovani ochish uchun pastdagi tugmadan foydalaning. Bugungi tushum kiritilmasa va qarz muddati yaqinlashsa, soat 21:00 da eslatib turaman.";
 
 type BotUser = NonNullable<Awaited<ReturnType<typeof prisma.user.findFirst>>>;
 
@@ -65,7 +65,7 @@ async function handleMessage(message: any) {
   if (!user) {
     await sendMessage(
       chatId,
-      "👋 <b>Birzum botiga xush kelibsiz!</b>\n\nHisobingiz hali ulanmagan. Ilovani oching va login (yoki telefon raqam) bilan bir marta kiring — shundan keyin Telegram orqali parolsiz kirasiz va eslatmalarni shu yerda olasiz.",
+      "👋 <b>Atigi botiga xush kelibsiz!</b>\n\nHisobingiz hali ulanmagan. Ilovani oching va login (yoki telefon raqam) bilan bir marta kiring — shundan keyin Telegram orqali parolsiz kirasiz va eslatmalarni shu yerda olasiz.",
       { reply_markup: webAppKeyboard('📱 Ilovani ochish va kirish') }
     );
     return;
@@ -162,7 +162,7 @@ export async function linkTelegramHandler(req: Request, res: Response) {
       return res.status(200).json({ success: true, botStarted: true, alreadyLinked: true });
     }
 
-    // One Telegram account belongs to one Birzum account at a time.
+    // One Telegram account belongs to one Atigi account at a time.
     await prisma.$transaction([
       prisma.user.updateMany({
         where: { telegramUserId: telegramId, NOT: { id: req.userId } },
