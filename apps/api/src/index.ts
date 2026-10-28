@@ -38,7 +38,9 @@ if (!process.env.JWT_SECRET) {
 }
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = Number(process.env.PORT) || 3000;
+// Production sets HOST=127.0.0.1 so the API is reachable only through Nginx.
+const HOST = process.env.HOST || '0.0.0.0';
 
 // Running behind Nginx: use the real client IP (needed for per-client rate limiting).
 app.set('trust proxy', 1);
@@ -102,7 +104,7 @@ app.delete('/api/v1/expenses/:id', authGuard, requireOwner, deleteExpenseHandler
 app.get('/api/v1/analytics', authGuard, requireOwner, getAnalyticsHandler);
 
 if (process.env.NODE_ENV !== 'test') {
-  app.listen(PORT, () => {
+  app.listen(PORT, HOST, () => {
     console.log(`🚀 Atigi API server running on port ${PORT}`);
     setupBot().catch((err) => console.error('Telegram bot setup failed:', err));
     startReminderScheduler();

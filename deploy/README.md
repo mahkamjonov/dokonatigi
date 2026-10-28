@@ -65,13 +65,15 @@ Nginx, HTTPS sertifikati va Telegram bot manzili yangi domenga o'tadi.
 
 ## Zaxira nusxalar
 
-- Har kuni soat 03:00 da `/var/backups/atigi/` ga olinadi, 14 kun saqlanadi.
+- Har kuni soat 03:00 da `/var/backups/atigi/` ga olinadi, 14 kun saqlanadi. Nusxa o'qilishi tekshiriladi.
 - Vaqti-vaqti bilan kompyuteringizga ham ko'chirib qo'ying — server butunlay ishdan chiqsa, undagi nusxalar ham yo'qoladi:
 
 ```bash
 scp root@SERVER_IP:/var/backups/atigi/atigi-2026-10-28.dump .
 ```
 
+- Har bir yangilashdan (`deploy.sh`) oldin ham alohida nusxa olinadi: `pre-deploy-*.dump`.
+- Loglar: `/var/backups/atigi/backup.log`.
 - Tiklash (**joriy ma'lumotlar ustidan yoziladi!**):
 
 ```bash

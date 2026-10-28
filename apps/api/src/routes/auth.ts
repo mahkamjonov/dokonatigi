@@ -17,9 +17,11 @@ import {
 
 const router = Router();
 
+// Per client IP: 10 failed attempts per 15 minutes (successful ones are not counted).
 const credentialsLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 30,
+  max: 10,
+  skipSuccessfulRequests: true,
   standardHeaders: true,
   legacyHeaders: false,
   message: {

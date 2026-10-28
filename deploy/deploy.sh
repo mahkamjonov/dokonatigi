@@ -8,6 +8,8 @@ git pull --ff-only
 npm ci
 
 npm run build --workspace=packages/database
+# Safety copy of the data before the schema is touched; the deploy stops if it fails.
+pg_dump --format=custom --file="/var/backups/atigi/pre-deploy-$(date +%F-%H%M%S).dump" atigi
 # The Prisma CLI reads DATABASE_URL / DIRECT_URL from the environment. Loaded in a subshell only:
 # PM2 must not inherit them, or a later .env change (e.g. a new APP_URL) would be shadowed on restart.
 # prisma db push refuses schema changes that would delete data.

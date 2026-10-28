@@ -4,10 +4,37 @@ import crypto from 'crypto';
 import { prisma, Prisma } from '@microstore/database';
 import { signToken } from '../utils/token.js';
 
-const MIN_PASSWORD_LENGTH = 4;
+const MIN_PASSWORD_LENGTH = 8;
 const LOGIN_PATTERN = /^[a-z0-9._-]{3,32}$/;
 // Used to keep response time similar when the login does not exist.
 const DUMMY_HASH = bcrypt.hashSync('microstore-dummy-password', 10);
+
+// Brute-force guard per login (on top of the per-IP limiter): MAX_FAILED_LOGINS wrong passwords within
+// LOGIN_WINDOW_MS lock that login for LOGIN_WINDOW_MS. Unknown logins are counted the same way, so the
+// lock does not reveal which logins exist.
+const MAX_FAILED_LOGINS = 5;
+const LOGIN_WINDOW_MS = 15 * 60 * 1000;
+const failedLogins = new Map<string, { count: number; first: number; lockedUntil: number }>();
+
+function loginLockMinutes(identifier: string): number {
+  const left = (failedLogins.get(identifier)?.lockedUntil ?? 0) - Date.now();
+  return left > 0 ? Math.ceil(left / 60000) : 0;
+}
+
+function recordFailedLogin(identifier: string) {
+  const now = Date.now();
+  let entry = failedLogins.get(identifier);
+  if (!entry || now - entry.first > LOGIN_WINDOW_MS) entry = { count: 0, first: now, lockedUntil: 0 };
+  entry.count += 1;
+  if (entry.count >= MAX_FAILED_LOGINS) entry.lockedUntil = now + LOGIN_WINDOW_MS;
+  failedLogins.set(identifier, entry);
+
+  if (failedLogins.size > 10000) {
+    for (const [key, e] of failedLogins) {
+      if (now - e.first > LOGIN_WINDOW_MS && e.lockedUntil < now) failedLogins.delete(key);
+    }
+  }
+}
 
 export function normalizePhone(phone: string): string {
   if (!phone) return '';
@@ -122,27 +149,27 @@ export async function loginHandler(req: Request, res: Response) {
       return fail(res, 400, 'MISSING_FIELDS', 'Telefon raqam yoki login va parolni kiriting.');
     }
 
-    const invalid = () => fail(res, 401, 'INVALID_CREDENTIALS', "Login yoki parol noto'g'ri!");
+    const lockMinutes = loginLockMinutes(identifier);
+    if (lockMinutes > 0) {
+      return fail(res, 429, 'LOGIN_LOCKED', `Juda ko'p noto'g'ri urinish. ${lockMinutes} daqiqadan keyin qayta urinib ko'ring.`);
+    }
 
-    let user = await prisma.user.findUnique({ where: { telegramId: identifier }, include: { store: true } });
-    if (!user) {
+    const invalid = () => {
+      recordFailedLogin(identifier);
+      return fail(res, 401, 'INVALID_CREDENTIALS', "Login yoki parol noto'g'ri!");
+    };
+
+    const user = await prisma.user.findUnique({ where: { telegramId: identifier }, include: { store: true } });
+    // Accounts without a password cannot sign in with one.
+    if (!user || !user.passwordHash) {
       await bcrypt.compare(userPassword, DUMMY_HASH);
       return invalid();
     }
-
-    if (!user.passwordHash) {
-      // Account created before passwords were stored in the database: the first successful login claims it.
-      const claimedHash = await bcrypt.hash(userPassword, 10);
-      const claimed = await prisma.user.updateMany({
-        where: { id: user.id, passwordHash: null },
-        data: { passwordHash: claimedHash },
-      });
-      if (claimed.count === 0) return invalid();
-      user = { ...user, passwordHash: claimedHash };
-    } else if (!(await bcrypt.compare(userPassword, user.passwordHash))) {
+    if (!(await bcrypt.compare(userPassword, user.passwordHash))) {
       return invalid();
     }
 
+    failedLogins.delete(identifier);
     return res.status(200).json({
       success: true,
       token: signToken(user),

@@ -115,7 +115,7 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({ isOp
               type="password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              placeholder="Kamida 4 ta belgi (o'zgartirmasangiz bo'sh)"
+              placeholder="Kamida 8 ta belgi (o'zgartirmasangiz bo'sh)"
               autoComplete="new-password"
               className={inputClass}
             />

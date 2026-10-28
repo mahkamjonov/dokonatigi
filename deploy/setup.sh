@@ -67,6 +67,7 @@ SQL
 
   cat > "$ENV_FILE" <<ENV
 NODE_ENV=production
+HOST=127.0.0.1
 PORT=$PORT
 APP_URL=https://$DOMAIN
 DATABASE_URL=postgresql://$DB_USER:$DB_PASS@localhost:5432/$DB_NAME
@@ -79,16 +80,16 @@ ENV
   chmod 600 "$ENV_FILE"
 fi
 
+echo "==> Daily database backups (03:00, kept 14 days)"
+install -d -o "$APP_USER" -g "$APP_USER" -m 700 /var/backups/atigi
+cat > /etc/cron.d/atigi-backup <<CRON
+0 3 * * * $APP_USER bash $APP_DIR/deploy/backup.sh >> /var/backups/atigi/backup.log 2>&1
+CRON
+
 echo "==> Build and start the app"
 sudo -u "$APP_USER" -H bash "$APP_DIR/deploy/deploy.sh"
 sudo -u "$APP_USER" -H pm2 install pm2-logrotate
 pm2 startup systemd -u "$APP_USER" --hp "/home/$APP_USER"
-
-echo "==> Daily database backups (03:00, kept 14 days)"
-install -d -o postgres -g postgres -m 700 /var/backups/atigi
-cat > /etc/cron.d/atigi-backup <<CRON
-0 3 * * * postgres pg_dump -Fc $DB_NAME > /var/backups/atigi/$DB_NAME-\$(date +\%F).dump && find /var/backups/atigi -name '*.dump' -mtime +14 -delete
-CRON
 
 echo "==> Web server and HTTPS"
 bash "$APP_DIR/deploy/set-domain.sh" "$DOMAIN"
